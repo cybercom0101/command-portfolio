@@ -1,526 +1,257 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mohammed Fahad | Cybersecurity Engineer</title>
+  <style>
+    /* ====== Global Styles ====== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: #0a0f1c;
+      color: #e4e4e4;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
 
-/**
- * CYBER COMMAND CENTER — Cinematic SOC Dashboard Portfolio
- * - Holographic neon UI w/ animated grid background
- * - Cinematic boot sequence
- * - Terminal w/ commands + Tab auto-complete
- * - Real-time threat graph
- * - Live security logs (clickable) + `analyze log X`
- * - Threat map widget (animated paths)
- * - Status panels (CPU/RAM/Firewall)
- * - Optional sound effects (toggle)
- */
+    /* ====== Header ====== */
+    header {
+      background: #11172b;
+      padding: 20px 10%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      color: #4dd0e1;
+      font-size: 1.5rem;
+    }
+    nav ul {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+    nav ul li a {
+      color: #e4e4e4;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+    nav ul li a:hover {
+      color: #4dd0e1;
+    }
 
-export default function CyberCommandCenter() {
-  // ---------------------- STATE ----------------------
-  const [booting, setBooting] = useState(true);
-  const [soundOn, setSoundOn] = useState(false);
-  const [command, setCommand] = useState("");
-  const [output, setOutput] = useState<string[]>([
-    "ACCESSING SECURE SYSTEM...",
-    "ENTERING CYBER COMMAND CENTER...",
-    ">> LOGIN SUCCESS\n",
-    "Type a command to begin. Try: help, whoami, skills -list, show projects, audit report, badges -unlocked, contact -secure, status, logs, threatmap, analyze log 3, clear\n"
-  ]);
+    /* ====== Hero Section ====== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      flex-direction: column;
+      padding: 0 10%;
+    }
+    .hero h2 {
+      font-size: 2.5rem;
+      color: #4dd0e1;
+    }
+    .hero p {
+      margin: 15px 0;
+      max-width: 700px;
+      font-size: 1.1rem;
+    }
+    .hero button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      border: none;
+      background: #4dd0e1;
+      color: #0a0f1c;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: 0.3s;
+    }
+    .hero button:hover {
+      background: #3bb5c4;
+    }
 
-  const knownCommands = useMemo(
-    () => [
-      "help",
-      "whoami",
-      "skills -list",
-      "show projects",
-      "audit report",
-      "badges -unlocked",
-      "contact -secure",
-      "status",
-      "logs",
-      "threatmap",
-      "analyze log",
-      "clear",
-    ],
-    []
-  );
+    /* ====== Section ====== */
+    section {
+      padding: 70px 10%;
+    }
+    section h2 {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2rem;
+      color: #4dd0e1;
+    }
 
-  const [glitchText, setGlitchText] = useState("SYSTEM ONLINE");
-  const [threatData, setThreatData] = useState(
-    Array.from({ length: 24 }, (_, i) => ({ t: i, v: Math.round(30 + Math.random() * 70) }))
-  );
-  const [liveLogs, setLiveLogs] = useState<string[]>([
-    ts("[INFO] Firewall initialized…"),
-    ts("[INFO] Monitoring inbound/outbound traffic…"),
-  ]);
-  const [selectedLog, setSelectedLog] = useState<{ index: number; text: string } | null>(null);
+    /* ====== About ====== */
+    .about p {
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+      font-size: 1.1rem;
+    }
 
-  // System metrics
-  const [cpu, setCpu] = useState(24);
-  const [ram, setRam] = useState(51);
-  const [waf, setWaf] = useState(95); // firewall efficacy
+    /* ====== Skills ====== */
+    .skills-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+    }
+    .skill {
+      background: #11172b;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      transition: 0.3s;
+    }
+    .skill:hover {
+      background: #1c243a;
+    }
 
-  // Threat map pseudo traffic
-  const attacks = useMemo(() => genAttacks(10), []);
-  const [attackTick, setAttackTick] = useState(0);
+    /* ====== Projects ====== */
+    .projects {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .project {
+      background: #11172b;
+      padding: 20px;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+    .project:hover {
+      background: #1c243a;
+    }
+    .project h3 {
+      margin-bottom: 10px;
+      color: #4dd0e1;
+    }
 
-  const termRef = useRef<HTMLDivElement>(null);
-  const logsRef = useRef<HTMLDivElement>(null);
+    /* ====== Contact ====== */
+    .contact {
+      text-align: center;
+    }
+    .contact a {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      background: #4dd0e1;
+      color: #0a0f1c;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .contact a:hover {
+      background: #3bb5c4;
+    }
 
-  // ---------------------- EFFECTS ----------------------
-  // Boot sequence
-  useEffect(() => {
-    const timer = setTimeout(() => setBooting(false), 1800);
-    return () => clearTimeout(timer);
-  }, []);
+    /* ====== Footer ====== */
+    footer {
+      background: #11172b;
+      text-align: center;
+      padding: 20px;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
 
-  // Glitch ticker
-  useEffect(() => {
-    const id = setInterval(() => setGlitchText(glitch("SYSTEM ONLINE", 0.12)), 160);
-    return () => clearInterval(id);
-  }, []);
+  <!-- ===== Header ===== -->
+  <header>
+    <h1>Mohammed Fahad</h1>
+    <nav>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  // Threat data ticker
-  useEffect(() => {
-    const id = setInterval(() => {
-      setThreatData((prev) => {
-        const next = [...prev.slice(1), { t: prev[prev.length - 1].t + 1, v: Math.max(10, Math.min(100, Math.round(prev.at(-1)!.v + (Math.random() * 20 - 10)))) }];
-        return next;
+  <!-- ===== Hero Section ===== -->
+  <div class="hero">
+    <h2>Cybersecurity Engineer & Pentester</h2>
+    <p>I specialize in Web Application & API Security, Vulnerability Assessment, IT Audits, and Red Teaming. Passionate about building secure digital systems and helping organizations stay protected.</p>
+    <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Hire Me</button>
+  </div>
+
+  <!-- ===== About Section ===== -->
+  <section id="about" class="about">
+    <h2>About Me</h2>
+    <p>I'm a Cybersecurity Engineer based in Dubai with expertise in VAPT, IT Audits, and Cloud Security. I have hands-on experience with penetration testing, incident response, and securing infrastructures across different industries. My goal is to build a cybersecurity company that helps organizations defend against ever-evolving cyber threats.</p>
+  </section>
+
+  <!-- ===== Skills Section ===== -->
+  <section id="skills">
+    <h2>Skills</h2>
+    <div class="skills-list">
+      <div class="skill">Web App Penetration Testing</div>
+      <div class="skill">API Security Testing</div>
+      <div class="skill">Network Security</div>
+      <div class="skill">Red Teaming</div>
+      <div class="skill">Incident Response</div>
+      <div class="skill">IT Audits</div>
+      <div class="skill">Python, SQL, C, C++</div>
+      <div class="skill">Burp Suite, Nmap, Metasploit</div>
+    </div>
+  </section>
+
+  <!-- ===== Projects Section ===== -->
+  <section id="projects">
+    <h2>Projects</h2>
+    <div class="projects">
+      <div class="project">
+        <h3>Passive Recon Tool</h3>
+        <p>Automated OSINT data collection without relying on API keys.</p>
+      </div>
+      <div class="project">
+        <h3>Web Security Scanner</h3>
+        <p>Scanner that detects SQLi, XSS, and common vulnerabilities.</p>
+      </div>
+      <div class="project">
+        <h3>Steganography Tool</h3>
+        <p>Hide and extract encrypted messages inside images with a GUI.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Contact Section ===== -->
+  <section id="contact" class="contact">
+    <h2>Contact Me</h2>
+    <p>Let's connect and work together on securing your digital world.</p>
+    <a href="mailto:youremail@example.com">Email Me</a>
+    <a href="https://www.linkedin.com/in/yourlinkedin" target="_blank">LinkedIn</a>
+    <a href="https://github.com/yourgithub" target="_blank">GitHub</a>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    <p>© 2025 Mohammed Fahad | Cybersecurity Engineer</p>
+  </footer>
+
+  <script>
+    // Smooth scroll for nav links
+    document.querySelectorAll("nav a").forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        document.querySelector(link.getAttribute("href"))
+          .scrollIntoView({ behavior: "smooth" });
       });
-    }, 1600);
-    return () => clearInterval(id);
-  }, []);
+    });
+  </script>
 
-  // Live logs ticker
-  useEffect(() => {
-    const id = setInterval(() => {
-      const event = randomEvent();
-      setLiveLogs((prev) => {
-        const next = [...prev, ts(event)].slice(-14);
-        return next;
-      });
-      playBeep(soundOn, 80, 0.03);
-    }, 2600);
-    return () => clearInterval(id);
-  }, [soundOn]);
-
-  // Metrics ticker
-  useEffect(() => {
-    const id = setInterval(() => {
-      setCpu((c) => clamp(Math.round(c + (Math.random() * 10 - 5)), 10, 92));
-      setRam((r) => clamp(Math.round(r + (Math.random() * 8 - 4)), 20, 96));
-      setWaf((w) => clamp(Math.round(w + (Math.random() * 6 - 3)), 80, 99));
-      setAttackTick((k) => (k + 1) % 10);
-    }, 1800);
-    return () => clearInterval(id);
-  }, []);
-
-  // Auto-scroll terminal + logs
-  useEffect(() => {
-    termRef.current?.scrollTo({ top: termRef.current.scrollHeight, behavior: "smooth" });
-  }, [output]);
-  useEffect(() => {
-    logsRef.current?.scrollTo({ top: logsRef.current.scrollHeight, behavior: "smooth" });
-  }, [liveLogs]);
-
-  // ---------------------- COMMAND HANDLER ----------------------
-  const handleCommand = (raw: string) => {
-    const cmd = raw.trim();
-    if (!cmd) return;
-
-    // analyze log X
-    if (/^analyze\s+log\s+\d+$/i.test(cmd)) {
-      const idx = parseInt(cmd.split(/\s+/).at(-1)!, 10);
-      const log = liveLogs[idx];
-      if (log) setSelectedLog({ index: idx, text: log });
-      setOutput((o) => [...o, `>> ${cmd}`, log ? `Opened incident ${idx}` : `Log ${idx} not found.`]);
-      setCommand("");
-      return;
-    }
-
-    let response = "Unknown command. Type `help`.";
-
-    switch (cmd.toLowerCase()) {
-      case "help":
-        response = [
-          "Available commands:",
-          "whoami",
-          "skills -list",
-          "show projects",
-          "audit report",
-          "badges -unlocked",
-          "contact -secure",
-          "status",
-          "logs",
-          "threatmap",
-          "analyze log <index>",
-          "clear",
-        ].join("\n");
-        break;
-      case "whoami":
-        response = "Mohammed Fahad – Cyber Security Engineer & Pentester (Dubai). Specializes in VAPT, Red Teaming, Incident Response. Building a next‑gen cybersecurity company.";
-        break;
-      case "skills -list":
-        response = `Skills & Tools:\n[+] Pentesting: Web, API, Network\n[+] Tools: Burp Suite, Nmap, Metasploit, Nessus\n[+] Languages: Python, SQL, C, C++, PHP, Java\n[+] Specialization: VAPT, Red Teaming, Incident Response`;
-        break;
-      case "show projects":
-        response = `Projects:\n- Passive Recon Tool: Automated OSINT for domains/IPs. [View Logs]\n- Web Security Scanner: SQLi/XSS detection with report export. [Open Case]\n- Steganography Studio: Encrypt, embed, and extract messages in images.`;
-        break;
-      case "audit report":
-        response = `Case Study:\nINCIDENT: SQL Injection on /auth\nCLIENT: Financial Exchange (UAE)\nACTION: WAF rule + parameterized queries\nIMPACT: Prevented sensitive data exposure\nSTATUS: Mitigated`;
-        break;
-      case "badges -unlocked":
-        response = `[✓] eJPT — Exploit Proficiency\n[✓] VMDR — Vulnerability Management\n[✓] OCSA — Cloud Security\n[✓] Google Cybersecurity`;
-        break;
-      case "contact -secure":
-        response = `INITIATE SECURE COMMUNICATION:\nEmail: your.email@example.com\nLinkedIn: linkedin.com/in/yourhandle\n>> Use the contact panel below to send an encrypted packet.`;
-        break;
-      case "status":
-        response = `System Status:\nCPU: ${cpu}%\nRAM: ${ram}%\nFirewall Efficacy: ${waf}%\nActive Threats: ~${threatData.at(-1)?.v}`;
-        break;
-      case "logs":
-        response = liveLogs.map((l, i) => `#${i} ${l}`).join("\n");
-        break;
-      case "threatmap":
-        response = "Opening global threat map widget below…";
-        break;
-      case "clear":
-        setOutput([]);
-        setCommand("");
-        return;
-      default:
-        break;
-    }
-
-    setOutput((o) => [...o, `>> ${cmd}`, response]);
-    setCommand("");
-  };
-
-  // Tab auto-complete
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleCommand(command);
-      return;
-    }
-    if (e.key === "Tab") {
-      e.preventDefault();
-      if (!command.trim()) return;
-      const match = knownCommands.find((c) => c.startsWith(command));
-      if (match) setCommand(match);
-    }
-  };
-
-  // ---------------------- RENDER ----------------------
-  return (
-    <div className="relative min-h-screen bg-black text-green-400 font-mono overflow-hidden">
-      {/* Animated Neon Grid Background */}
-      <div className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_50%,rgba(0,255,170,0.06),transparent_40%),repeating-linear-gradient(0deg,rgba(0,255,170,0.08)_0_1px,transparent_1px_60px),repeating-linear-gradient(90deg,rgba(0,255,170,0.06)_0_1px,transparent_1px_60px)] animate-[pulse_8s_ease-in-out_infinite]" />
-      <div className="pointer-events-none absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_10%,rgba(0,180,255,0.18),transparent_30%),radial-gradient(circle_at_80%_90%,rgba(0,255,170,0.15),transparent_30%)]" />
-
-      {/* Top bar */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-6 flex items-center justify-between">
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-green-300">
-          <span className="tracking-widest">[ CYBER COMMAND CENTER ]</span>
-        </motion.div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => setSoundOn((s) => !s)} className="px-3 py-1 text-xs border border-green-500/60 rounded-xl hover:bg-green-500/10">{soundOn ? "Sound: ON" : "Sound: OFF"}</button>
-          <span className="text-green-500/80">{glitchText}</span>
-        </div>
-      </div>
-
-      {/* Boot Curtain */}
-      <AnimatePresence>
-        {booting && (
-          <motion.div className="absolute inset-0 z-40 flex items-center justify-center bg-black"
-            initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-              <p className="text-2xl text-green-400 mb-3">Initializing Cyber Command Center…</p>
-              <p className="text-green-500/70">Loading modules: [ WAF ][ IDS ][ Threat Intel ][ Telemetry ]</p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Main layout */}
-      <div className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 pb-16">
-        {/* Terminal Panel */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="lg:col-span-2 border border-green-600/60 rounded-2xl p-4 bg-black/60 shadow-[0_0_40px_rgba(0,255,170,0.08)]">
-          <h2 className="text-sm mb-2 text-green-300">[ TERMINAL ]</h2>
-          <div ref={termRef} className="h-[42vh] overflow-y-auto whitespace-pre-line bg-black/60 p-3 rounded-xl border border-green-700/40">
-            {output.map((line, i) => (
-              <p key={i} className="leading-6">{line}</p>
-            ))}
-          </div>
-          <div className="flex items-center mt-3 gap-2">
-            <span className="text-green-500">$</span>
-            <input
-              className="flex-1 bg-black/60 outline-none text-green-400 px-2 py-1 rounded-lg border border-green-700/40 focus:border-green-400"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="type a command… (Tab to auto-complete)"
-              autoFocus
-            />
-            <button onClick={() => handleCommand(command)} className="px-3 py-1 text-xs border border-green-500/60 rounded-xl hover:bg-green-500/10">Run</button>
-            <button onClick={() => { setOutput([]); setCommand(""); }} className="px-3 py-1 text-xs border border-green-500/60 rounded-xl hover:bg-green-500/10">Clear</button>
-          </div>
-        </motion.div>
-
-        {/* Metrics Panel */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="border border-green-600/60 rounded-2xl p-4 bg-black/60 shadow-[0_0_40px_rgba(0,255,170,0.08)]">
-          <h2 className="text-sm mb-2 text-green-300">[ SYSTEM STATUS ]</h2>
-          <div className="space-y-4">
-            <Gauge label="CPU" value={cpu} />
-            <Gauge label="RAM" value={ram} />
-            <Gauge label="Firewall" value={waf} />
-          </div>
-          <div className="mt-6">
-            <p className="text-xs text-green-500/80 mb-1">Active Threats (last 24 ticks)</p>
-            <div className="h-28">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={threatData}>
-                  <XAxis dataKey="t" hide />
-                  <YAxis hide domain={[0, 120]} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="v" stroke="#00ffaa" fill="#00ffaa22" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Threat Map */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="lg:col-span-3 border border-green-600/60 rounded-2xl p-4 bg-black/60 shadow-[0_0_40px_rgba(0,255,170,0.08)]">
-          <h2 className="text-sm mb-3 text-green-300">[ GLOBAL THREAT MAP ]</h2>
-          <ThreatMap attacks={attacks} tick={attackTick} />
-        </motion.div>
-
-        {/* Live Logs */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="lg:col-span-2 border border-green-600/60 rounded-2xl p-4 bg-black/60 shadow-[0_0_40px_rgba(0,255,170,0.08)]">
-          <h2 className="text-sm mb-2 text-green-300">[ LIVE SECURITY LOGS ]</h2>
-          <div ref={logsRef} className="h-44 overflow-y-auto text-sm space-y-1">
-            {liveLogs.map((log, i) => (
-              <button key={i} onClick={() => setSelectedLog({ index: i, text: log })} className="block w-full text-left hover:bg-green-500/10 rounded px-2 py-0.5">
-                <span className="text-green-400/80 mr-2">#{i}</span>{log}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-green-500/70 mt-2">Tip: type <code>analyze log &lt;index&gt;</code> in the terminal to open details.</p>
-        </motion.div>
-
-        {/* Contact */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-          className="border border-green-600/60 rounded-2xl p-4 bg-black/60 shadow-[0_0_40px_rgba(0,255,170,0.08)]">
-          <h2 className="text-sm mb-2 text-green-300">[ SECURE TRANSMISSION ]</h2>
-          <form className="space-y-2 text-sm" onSubmit={(e) => e.preventDefault()}>
-            <Field label="Name" placeholder="Anonymous" />
-            <Field label="Email" placeholder="you@domain.com" />
-            <Field label="Message" placeholder="Your encrypted packet…" multiline />
-            <button className="w-full mt-2 border border-green-500/60 rounded-xl py-2 hover:bg-green-500/10">Send Encrypted Packet</button>
-          </form>
-          <div className="mt-3 text-xs text-green-500/70">PGP: 0xC0FFEE‑FAHAD • Fingerprint: FA:HA:D0:01:01</div>
-        </motion.div>
-      </div>
-
-      {/* Incident Modal */}
-      <AnimatePresence>
-        {selectedLog && (
-          <motion.div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }}
-              className="max-w-lg w-[90%] border border-green-600 rounded-2xl p-4 bg-black">
-              <h3 className="text-green-300 text-sm mb-2">[ INCIDENT ANALYSIS — #{selectedLog.index} ]</h3>
-              <div className="text-sm space-y-2">
-                <p>{selectedLog.text}</p>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <Info label="Source IP" value={randIp()} />
-                  <Info label="Dest" value={"prod.api.local:443"} />
-                  <Info label="Vector" value={randVector()} />
-                  <Info label="Severity" value={randSeverity()} />
-                  <Info label="Country" value={randCountry()} />
-                  <Info label="Action" value={Math.random() > 0.3 ? "Blocked by WAF" : "Allowed (Monitored)"} />
-                </div>
-                <div className="h-24">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={miniSeries()}>
-                      <XAxis dataKey="t" hide /><YAxis hide domain={[0, 100]} /><Tooltip />
-                      <Line type="monotone" dataKey="v" stroke="#00ffaa" dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button onClick={() => { playBeep(soundOn, 140, 0.05); setSelectedLog(null); }} className="px-3 py-1 text-xs border border-green-500/60 rounded-xl hover:bg-green-500/10">Close</button>
-                <button onClick={() => { setOutput((o) => [...o, ">> mitigate incident", "Applied temporary WAF rule: /login → block SQL meta chars"]); playBeep(soundOn, 220, 0.06); setSelectedLog(null); }} className="px-3 py-1 text-xs border border-green-500/60 rounded-xl hover:bg-green-500/10">Mitigate</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ---------------------- UI SUBCOMPONENTS ----------------------
-function Field({ label, placeholder, multiline = false }: { label: string; placeholder?: string; multiline?: boolean }) {
-  return (
-    <label className="block">
-      <span className="text-green-400/90">{label}</span>
-      {multiline ? (
-        <textarea className="mt-1 w-full bg-black/60 outline-none text-green-300 px-2 py-1 rounded-lg border border-green-700/40 focus:border-green-400 h-24" placeholder={placeholder} />
-      ) : (
-        <input className="mt-1 w-full bg-black/60 outline-none text-green-300 px-2 py-1 rounded-lg border border-green-700/40 focus:border-green-400" placeholder={placeholder} />
-      )}
-    </label>
-  );
-}
-
-function Gauge({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1 text-xs">
-        <span className="text-green-300">{label}</span>
-        <span className="text-green-400">{value}%</span>
-      </div>
-      <div className="h-2 rounded-full bg-green-900/30 overflow-hidden border border-green-700/40">
-        <div className="h-full bg-gradient-to-r from-emerald-400/80 to-cyan-300/70" style={{ width: `${value}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-green-700/40 rounded-lg p-2 bg-black/50">
-      <div className="text-[10px] text-green-500/80">{label}</div>
-      <div className="text-green-300">{value}</div>
-    </div>
-  );
-}
-
-function ThreatMap({ attacks, tick }: { attacks: Attack[]; tick: number }) {
-  return (
-    <div className="relative h-[280px] rounded-xl border border-green-700/40 bg-black/60 overflow-hidden">
-      {/* simple abstract map grid */}
-      <div className="absolute inset-0 opacity-40 [background:radial-gradient(circle_at_50%_50%,rgba(0,255,170,0.1),transparent_60%),repeating-linear-gradient(0deg,rgba(0,255,170,0.06)_0_1px,transparent_1px_40px),repeating-linear-gradient(90deg,rgba(0,255,170,0.05)_0_1px,transparent_1px_40px)]" />
-      <svg viewBox="0 0 100 50" className="absolute inset-0 w-full h-full">
-        {/* nodes */}
-        {nodes.map((n, i) => (
-          <circle key={i} cx={n.x} cy={n.y} r={1.2} fill="#00ffaa" opacity={0.8} />
-        ))}
-        {/* animated links */}
-        {attacks.map((a, i) => (
-          <AnimatedLink key={i} a={a} active={i % 10 === tick} />
-        ))}
-      </svg>
-    </div>
-  );
-}
-
-function AnimatedLink({ a, active }: { a: Attack; active: boolean }) {
-  const d = `M ${a.from.x} ${a.from.y} Q ${(a.from.x + a.to.x) / 2} ${Math.min(a.from.y, a.to.y) - 6} ${a.to.x} ${a.to.y}`;
-  return (
-    <path d={d} fill="none" stroke="#00ffaa" strokeOpacity={active ? 0.9 : 0.35} strokeWidth={active ? 0.5 : 0.35} strokeDasharray="2 2" />
-  );
-}
-
-// ---------------------- HELPERS ----------------------
-function glitch(base: string, p = 0.1) {
-  return base
-    .split("")
-    .map((c) => (Math.random() < p ? String.fromCharCode(33 + Math.floor(Math.random() * 94)) : c))
-    .join("");
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function ts(s: string) {
-  const t = new Date();
-  const hh = String(t.getHours()).padStart(2, "0");
-  const mm = String(t.getMinutes()).padStart(2, "0");
-  const ss = String(t.getSeconds()).padStart(2, "0");
-  return `[${hh}:${mm}:${ss}] ${s}`;
-}
-
-function randomEvent() {
-  const ips = ["185.23.77.14", "92.10.44.2", "77.88.17.19", "203.0.113.45", "198.51.100.12", "8.8.8.8"];
-  const events = [
-    (ip: string) => `[ALERT] Intrusion attempt detected from ${ip}`,
-    (ip: string) => `[WARNING] Multiple failed SSH logins from ${ip}`,
-    (ip: string) => `[NOTICE] Suspicious traffic blocked on port 443 from ${ip}`,
-    (ip: string) => `[ALERT] SQL injection attempt on /login by ${ip}`,
-    (ip: string) => `[INFO] New device connected: ${ip}`,
-  ];
-  const ip = ips[Math.floor(Math.random() * ips.length)];
-  const e = events[Math.floor(Math.random() * events.length)];
-  return e(ip);
-}
-
-function randIp() {
-  return `${rand(1, 223)}.${rand(0, 255)}.${rand(0, 255)}.${rand(1, 254)}`;
-}
-function rand(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-function randVector() {
-  const a = ["SQLi", "XSS", "RCE", "Brute Force", "LFI", "CSRF", "TLS Probe"];
-  return a[Math.floor(Math.random() * a.length)];
-}
-function randSeverity() {
-  const a = ["Low", "Medium", "High", "Critical"];
-  return a[Math.floor(Math.random() * a.length)];
-}
-function randCountry() {
-  const a = ["US", "UK", "DE", "AE", "IN", "RU", "CN", "BR", "ZA", "SG"];
-  return a[Math.floor(Math.random() * a.length)];
-}
-
-// Simple WebAudio beep
-let audioCtx: AudioContext | null = null;
-function playBeep(enabled: boolean, freq = 120, dur = 0.04) {
-  if (!enabled) return;
-  try {
-    if (!audioCtx) audioCtx = new (window as any).AudioContext();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = "square"; o.frequency.value = freq;
-    g.gain.value = 0.02; // subtle
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start();
-    setTimeout(() => { o.stop(); }, dur * 1000);
-  } catch { /* ignore */ }
-}
-
-// Threat map points (abstract world positions)
-const nodes = [
-  { x: 15, y: 15 }, // US West
-  { x: 28, y: 14 }, // US East
-  { x: 35, y: 18 }, // Atlantic
-  { x: 45, y: 16 }, // UK/EU
-  { x: 55, y: 20 }, // CEE
-  { x: 64, y: 22 }, // Middle East
-  { x: 70, y: 18 }, // India
-  { x: 78, y: 22 }, // SEA
-  { x: 84, y: 20 }, // China
-  { x: 92, y: 26 }, // Japan
-  { x: 60, y: 34 }, // Africa North
-  { x: 40, y: 36 }, // South America
-  { x: 75, y: 38 }, // Oceania
-];
-
-interface Pt { x: number; y: number }
-interface Attack { from: Pt; to: Pt }
-function genAttacks(n: number): Attack[] {
-  const out: Attack[] = [];
-  for (let i = 0; i < n; i++) {
-    const a = nodes[Math.floor(Math.random() * nodes.length)];
-    const b = nodes[Math.floor(Math.random() * nodes.length)];
-    if (a !== b) out.push({ from: a, to: b });
-  }
-  return out;
-}
+</body>
+</html>
